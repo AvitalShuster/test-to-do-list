@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from "react";
 //import { css } from "@emotion/react";
-import Button from "@mui/material/Button";
-import ButtonGroup from "@mui/material/ButtonGroup";
 import DeleteIcon from "@mui/icons-material/Delete";
-import TextField from "@mui/material/TextField";
-import Checkbox from "@mui/material/Checkbox";
-import { Typography, Box } from "@mui/material";
-import Paper from "@mui/material/Paper";
-import Grid from "@mui/material/Grid";
-
+import { css } from "@emotion/css";
 import {
+  Typography,
+  Box,
+  Checkbox,
+  TextField,
+  ButtonGroup,
+  Button,
   List,
   ListItemButton,
   ListItemText,
@@ -18,63 +17,49 @@ import {
   IconButton,
 } from "@mui/material";
 
-const containerStyle = {
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  width: "500px",
-  height: "600px",
-  backgroundColor: "lightGrey",
-  borderRadius: "30px",
-  margin: "0 auto",
-  marginTop: "30px",
-};
+const containerStyle = css`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: lightGrey;
+`;
 
-const titleStyle = {
-  color: "black",
-  variant: "h1",
-  width: "300px",
-  height: "50px",
-  //borderRadius: "20px",
-  //backgroundColor: "lightBlue",
-  margin: "0 auto",
-  fontWeight: "bold",
-  //justifyContent: "center",
-  //alignItems: "center",
-};
+const titleStyle = css`
+  color: black;
+  font-size: 24px;
+  width: 300px;
+  height: 50px;
+  border-radius: 20px;
+  background-color: lightBlue;
+  margin: 0 auto;
+  font-weight: bold;
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  // line-height: ;
+`;
 
-const inputContainerStyle = {
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  //height: "40px",
-};
+const inputContainerStyle = css`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 30px;
+`;
 
-/*const taskItemStyle = {
-  width: "200px",
-  display: "flex",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-};*/
-
-const completedTaskStyle = {
-  textDecoration: "line-through",
-  textDecorationStyle: "solid",
-  textDecorationThickness: "2px",
-  color: "black",
-};
-
-/*const deleteButtonStyle = {
-  fontSize: "10px",
-  padding: "3px 3px",
-};*/
+const completedTaskStyle = css`
+  text-decoration: line-through;
+  text-decoration-style: solid;
+  text-decoration-thickness: 2px;
+  color: black;
+`;
 
 const ToDoList = () => {
   useEffect(() => {
     const storedTasks = localStorage.getItem("tasks");
     if (storedTasks) {
-      setTasks(JSON.parse(storedTasks));
+      const clonedTasks = JSON.parse(storedTasks);
+      setTasks([...clonedTasks]);
     }
   }, []);
 
@@ -93,6 +78,7 @@ const ToDoList = () => {
   const handleInputChange = (event) => {
     setTaskInfo(event.target.value);
   };
+
   const addTask = () => {
     if (taskInfo.trim() !== "") {
       const newTask = {
@@ -107,12 +93,16 @@ const ToDoList = () => {
   };
 
   const deleteTask = (taskId) => {
-    const updatedTasks = tasks.filter((task) => task.id !== taskId);
+    const clonedTasks = [...tasks];
+
+    const updatedTasks = clonedTasks.filter((task) => task.id !== taskId);
     setTasks(updatedTasks);
   };
 
   const markAsCompleted = (taskId) => {
-    const updatedTasks = tasks.map((task) => {
+    const clonedTasks = [...tasks];
+
+    const updatedTasks = clonedTasks.map((task) => {
       if (task.id === taskId) {
         return { ...task, completed: !task.completed };
       }
@@ -177,7 +167,6 @@ const ToDoList = () => {
               href="#simple-list"
               key={task.id}
               disableGutters
-              //sx={taskItemStyle}
             >
               <ListItemIcon>
                 <Checkbox
@@ -210,7 +199,6 @@ const ToDoList = () => {
         flexDirection="column"
         justifyContent="center"
         alignItems="center"
-        //height="40vh"
       >
         <Typography variant="body1" fontWeight="bold">
           Total Tasks: {tasks.length}
