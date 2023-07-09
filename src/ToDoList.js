@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-//import { css } from "@emotion/react";
+import { useState, useEffect } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { css } from "@emotion/css";
 import {
@@ -22,7 +21,7 @@ const containerStyle = css`
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: lightGrey;
+  flex-direction: column;
 `;
 
 const titleStyle = css`
@@ -37,7 +36,6 @@ const titleStyle = css`
   margin-top: 30px;
   display: flex;
   flex-direction: column;
-  // line-height: ;
 `;
 
 const inputContainerStyle = css`
@@ -55,25 +53,16 @@ const completedTaskStyle = css`
 `;
 
 const ToDoList = () => {
-  useEffect(() => {
-    const storedTasks = localStorage.getItem("tasks");
-    if (storedTasks) {
-      const clonedTasks = JSON.parse(storedTasks);
-      setTasks([...clonedTasks]);
-    }
-  }, []);
-
-  const [tasks, setTasks] = useState(() => {
-    const storedTasks = localStorage.getItem("tasks");
-    return storedTasks ? JSON.parse(storedTasks) : [];
-  });
-
+  const [tasks, setTasks] = useState([]);
   const [taskInfo, setTaskInfo] = useState("");
   const [filter, setFilter] = useState("all");
 
   useEffect(() => {
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-  }, [tasks]);
+    const storedTasks = localStorage.getItem("tasks");
+    if (storedTasks) {
+      setTasks(JSON.parse(storedTasks));
+    }
+  }, []);
 
   const handleInputChange = (event) => {
     setTaskInfo(event.target.value);
@@ -81,34 +70,43 @@ const ToDoList = () => {
 
   const addTask = () => {
     if (taskInfo.trim() !== "") {
+      const isTaskExists = tasks.some((task) => task.task === taskInfo.trim());
+
+      if (isTaskExists) {
+        alert("Task already exists!");
+        return;
+      }
+
       const newTask = {
         id: Date.now(),
-        task: taskInfo,
+        task: taskInfo.trim(),
         completed: false,
       };
 
-      setTasks([...tasks, newTask]);
+      const updatedTasks = [...tasks, newTask];
+      setTasks(updatedTasks);
       setTaskInfo("");
+      localStorage.setItem("tasks", JSON.stringify(updatedTasks));
     }
   };
 
   const deleteTask = (taskId) => {
-    const clonedTasks = [...tasks];
-
-    const updatedTasks = clonedTasks.filter((task) => task.id !== taskId);
+    const updatedTasks = tasks.filter((task) => task.id !== taskId);
     setTasks(updatedTasks);
+    localStorage.setItem("tasks", JSON.stringify(updatedTasks));
   };
 
   const markAsCompleted = (taskId) => {
-    const clonedTasks = [...tasks];
-
-    const updatedTasks = clonedTasks.map((task) => {
+    const updatedTasks = tasks.map((task) => {
       if (task.id === taskId) {
-        return { ...task, completed: !task.completed };
+        const updatedTask = { ...task, completed: !task.completed };
+        return updatedTask;
       }
       return task;
     });
+
     setTasks(updatedTasks);
+    localStorage.setItem("tasks", JSON.stringify(updatedTasks));
   };
 
   const filterTasks = () => {
@@ -123,10 +121,10 @@ const ToDoList = () => {
   };
 
   return (
-    <div sx={containerStyle}>
-      <Box sx={titleStyle}>To Do List</Box>
+    <div className={containerStyle}>
+      <Box className={titleStyle}>To Do List</Box>
 
-      <Box sx={inputContainerStyle}>
+      <Box className={inputContainerStyle}>
         <TextField
           id="outlined-basic"
           label="Add a new task here"
@@ -140,6 +138,7 @@ const ToDoList = () => {
           Add Task
         </Button>
       </Box>
+
       <Box
         display="flex"
         flexDirection="column"
@@ -177,7 +176,7 @@ const ToDoList = () => {
               <ListItemText
                 primary={task.task}
                 primaryTypographyProps={{
-                  sx: task.completed ? completedTaskStyle : null,
+                  className: task.completed ? completedTaskStyle : "",
                 }}
               />
               <ListItemSecondaryAction>
