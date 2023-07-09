@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 //import { css } from "@emotion/react";
 import Button from "@mui/material/Button";
 import ButtonGroup from "@mui/material/ButtonGroup";
@@ -35,12 +35,12 @@ const titleStyle = {
   variant: "h1",
   width: "300px",
   height: "50px",
-  borderRadius: "20px",
-  backgroundColor: "lightBlue",
+  //borderRadius: "20px",
+  //backgroundColor: "lightBlue",
   margin: "0 auto",
   fontWeight: "bold",
-  justifyContent: "center",
-  alignItems: "center",
+  //justifyContent: "center",
+  //alignItems: "center",
 };
 
 const inputContainerStyle = {
@@ -71,9 +71,24 @@ const completedTaskStyle = {
 };*/
 
 const ToDoList = () => {
-  const [tasks, setTasks] = useState([]);
+  useEffect(() => {
+    const storedTasks = localStorage.getItem("tasks");
+    if (storedTasks) {
+      setTasks(JSON.parse(storedTasks));
+    }
+  }, []);
+
+  const [tasks, setTasks] = useState(() => {
+    const storedTasks = localStorage.getItem("tasks");
+    return storedTasks ? JSON.parse(storedTasks) : [];
+  });
+
   const [taskInfo, setTaskInfo] = useState("");
   const [filter, setFilter] = useState("all");
+
+  useEffect(() => {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  }, [tasks]);
 
   const handleInputChange = (event) => {
     setTaskInfo(event.target.value);
@@ -83,7 +98,7 @@ const ToDoList = () => {
       const newTask = {
         id: Date.now(),
         task: taskInfo,
-        isCompleted: false,
+        completed: false,
       };
 
       setTasks([...tasks, newTask]);
