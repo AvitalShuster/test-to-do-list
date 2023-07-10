@@ -22,13 +22,12 @@ const containerStyle = css`
   align-items: center;
   flex-direction: column;
   gap: 30px;
-`;
-
-const titleStyle = css`
-  color: #29b6f6;
-  font-size: 40px;
-  font-weight: bold;
-  margin-top: 30px;
+  h1 {
+    color: #29b6f6;
+    font-size: 50px;
+    font-weight: bold;
+    margin-top: 30px;
+  }
 `;
 
 const completedTaskStyle = css`
@@ -70,7 +69,7 @@ const ToDoList = () => {
     const newTask = {
       id: Date.now(),
       task: inputValue.trim(),
-      completed: false,
+      isCompleted: false,
     };
 
     const updatedTasks = [...newTaskValue, newTask];
@@ -86,17 +85,16 @@ const ToDoList = () => {
   };
 
   const filterTasks = () => {
-    if (taskState === "completed")
-      return newTaskValue.filter((task) => task.completed);
+    if (taskState === "isCompleted")
+      return newTaskValue.filter((task) => task.isCompleted);
     if (taskState === "toDo")
-      return newTaskValue.filter((task) => !task.completed);
+      return newTaskValue.filter((task) => !task.isCompleted);
     return newTaskValue;
   };
 
   return (
     <div className={containerStyle}>
-      <Box className={titleStyle}>To Do List</Box>
-
+      <Typography variant="h1">To Do List</Typography>
       <Box>
         <TextField
           id="outlined-basic"
@@ -135,20 +133,25 @@ const ToDoList = () => {
             >
               <ListItemIcon>
                 <Checkbox
-                  checked={task.completed}
+                  checked={task.isCompleted}
                   onChange={() => {
                     const updatedTasks = newTaskValue.map((t) =>
-                      t.id === task.id ? { ...t, completed: !t.completed } : t
+                      t.id === task.id
+                        ? { ...t, isCompleted: !t.isCompleted }
+                        : t
                     );
                     setNewTaskValue(updatedTasks);
-                    localStorage.setItem("", JSON.stringify(updatedTasks));
+                    localStorage.setItem(
+                      "newTaskValue",
+                      JSON.stringify(updatedTasks)
+                    );
                   }}
                 />
               </ListItemIcon>
               <ListItemText
                 primary={task.task}
                 primaryTypographyProps={{
-                  className: task.completed ? completedTaskStyle : "",
+                  className: task.isCompleted ? completedTaskStyle : "",
                 }}
               />
               <ListItemSecondaryAction>
@@ -176,11 +179,11 @@ const ToDoList = () => {
         </Typography>
         <Typography variant="body1" fontWeight="bold">
           Completed Tasks:{" "}
-          {newTaskValue.filter((task) => task.completed).length}
+          {newTaskValue.filter((task) => task.isCompleted).length}
         </Typography>
         <Typography variant="body1" fontWeight="bold">
           Remaining Tasks:{" "}
-          {newTaskValue.filter((task) => !task.completed).length}
+          {newTaskValue.filter((task) => !task.isCompleted).length}
         </Typography>
       </Box>
     </div>
