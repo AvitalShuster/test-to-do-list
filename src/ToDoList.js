@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { css } from "@emotion/css";
 import {
@@ -20,146 +20,112 @@ const containerStyle = css`
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
   flex-direction: column;
+  gap: 30px;
 `;
 
 const titleStyle = css`
-  color: black;
-  font-size: 24px;
-  width: 300px;
-  height: 50px;
-  border-radius: 20px;
-  background-color: lightBlue;
-  margin: 0 auto;
+  color: #29b6f6;
+  font-size: 40px;
   font-weight: bold;
-  margin-top: 30px;
-  display: flex;
-  flex-direction: column;
-`;
-
-const inputContainerStyle = css`
-  display: flex;
-  justify-content: center;
-  align-items: center;
   margin-top: 30px;
 `;
 
 const completedTaskStyle = css`
-  text-decoration: line-through;
-  text-decoration-style: solid;
-  text-decoration-thickness: 2px;
+  text-decoration: line-through solid 2px;
   color: black;
 `;
 
+const listContainerStyle = css`
+  width: 100%;
+  max-height: 450px;
+  overflow-x: hidden;
+  overflow-y: auto;
+`;
+
 const ToDoList = () => {
-  const [tasks, setTasks] = useState([]);
-  const [taskInfo, setTaskInfo] = useState("");
-  const [filter, setFilter] = useState("all");
+  const [newTaskValue, setNewTaskValue] = useState(() => {
+    const storedTasks = localStorage.getItem("newTaskValue");
+    return storedTasks ? JSON.parse(storedTasks) : [];
+  });
 
-  useEffect(() => {
-    const storedTasks = localStorage.getItem("tasks");
-    if (storedTasks) {
-      setTasks(JSON.parse(storedTasks));
-    }
-  }, []);
-
-  const handleInputChange = (event) => {
-    setTaskInfo(event.target.value);
-  };
+  const [inputValue, setInputValue] = useState("");
+  const [taskState, associateTaskState] = useState("all");
 
   const addTask = () => {
-    if (taskInfo.trim() !== "") {
-      const isTaskExists = tasks.some((task) => task.task === taskInfo.trim());
-
-      if (isTaskExists) {
-        alert("Task already exists!");
-        return;
-      }
-
-      const newTask = {
-        id: Date.now(),
-        task: taskInfo.trim(),
-        completed: false,
-      };
-
-      const updatedTasks = [...tasks, newTask];
-      setTasks(updatedTasks);
-      setTaskInfo("");
-      localStorage.setItem("tasks", JSON.stringify(updatedTasks));
+    if (inputValue.trim() === "") {
+      alert("Trying to add an empty string!");
+      return;
     }
+
+    const isTaskExists = newTaskValue.some(
+      (task) => task.task === inputValue.trim()
+    );
+
+    if (isTaskExists) {
+      alert("Task already exists!");
+      return;
+    }
+
+    const newTask = {
+      id: Date.now(),
+      task: inputValue.trim(),
+      completed: false,
+    };
+
+    const updatedTasks = [...newTaskValue, newTask];
+    setNewTaskValue(updatedTasks);
+    setInputValue("");
+    localStorage.setItem("newTaskValue", JSON.stringify(updatedTasks));
   };
 
   const deleteTask = (taskId) => {
-    const updatedTasks = tasks.filter((task) => task.id !== taskId);
-    setTasks(updatedTasks);
-    localStorage.setItem("tasks", JSON.stringify(updatedTasks));
-  };
-
-  const markAsCompleted = (taskId) => {
-    const updatedTasks = tasks.map((task) => {
-      if (task.id === taskId) {
-        const updatedTask = { ...task, completed: !task.completed };
-        return updatedTask;
-      }
-      return task;
-    });
-
-    setTasks(updatedTasks);
-    localStorage.setItem("tasks", JSON.stringify(updatedTasks));
+    const updatedTasks = newTaskValue.filter((task) => task.id !== taskId);
+    setNewTaskValue(updatedTasks);
+    localStorage.setItem("newTaskValue", JSON.stringify(updatedTasks));
   };
 
   const filterTasks = () => {
-    switch (filter) {
-      case "completed":
-        return tasks.filter((task) => task.completed);
-      case "toDo":
-        return tasks.filter((task) => !task.completed);
-      default:
-        return tasks;
-    }
+    if (taskState === "completed")
+      return newTaskValue.filter((task) => task.completed);
+    if (taskState === "toDo")
+      return newTaskValue.filter((task) => !task.completed);
+    return newTaskValue;
   };
 
   return (
     <div className={containerStyle}>
       <Box className={titleStyle}>To Do List</Box>
 
-      <Box className={inputContainerStyle}>
+      <Box>
         <TextField
           id="outlined-basic"
           label="Add a new task here"
           variant="outlined"
           size="small"
           input
-          value={taskInfo}
-          onChange={handleInputChange}
+          value={inputValue}
+          onChange={(event) => setInputValue(event.target.value)}
         />
         <Button variant="outlined" size="large" onClick={addTask}>
           Add Task
         </Button>
-      </Box>
 
-      <Box
-        display="flex"
-        flexDirection="column"
-        alignItems="center"
-        height="40vh"
-      >
-        <Box>
+        <Box display="flex" flexDirection="column" alignItems="center">
           <ButtonGroup
             variant="outlined"
             size="medium"
             aria-label="outlined primary button group"
           >
-            <Button onClick={() => setFilter("all")}>All Tasks</Button>
-            <Button onClick={() => setFilter("completed")}>Completed</Button>
-            <Button onClick={() => setFilter("toDo")}>To Do</Button>
+            <Button onClick={() => associateTaskState("all")}>All Tasks</Button>
+            <Button onClick={() => associateTaskState("completed")}>
+              Completed
+            </Button>
+            <Button onClick={() => associateTaskState("toDo")}>To Do</Button>
           </ButtonGroup>
         </Box>
 
-        <List
-          sx={{ width: "100%", maxWidth: 360, bgcolor: "background.paper" }}
-        >
+        <List className={listContainerStyle}>
           {filterTasks().map((task) => (
             <ListItemButton
               component="li"
@@ -170,7 +136,13 @@ const ToDoList = () => {
               <ListItemIcon>
                 <Checkbox
                   checked={task.completed}
-                  onChange={() => markAsCompleted(task.id)}
+                  onChange={() => {
+                    const updatedTasks = newTaskValue.map((t) =>
+                      t.id === task.id ? { ...t, completed: !t.completed } : t
+                    );
+                    setNewTaskValue(updatedTasks);
+                    localStorage.setItem("", JSON.stringify(updatedTasks));
+                  }}
                 />
               </ListItemIcon>
               <ListItemText
@@ -200,13 +172,15 @@ const ToDoList = () => {
         alignItems="center"
       >
         <Typography variant="body1" fontWeight="bold">
-          Total Tasks: {tasks.length}
+          Total Tasks: {newTaskValue.length}
         </Typography>
         <Typography variant="body1" fontWeight="bold">
-          Completed Tasks: {tasks.filter((task) => task.completed).length}
+          Completed Tasks:{" "}
+          {newTaskValue.filter((task) => task.completed).length}
         </Typography>
         <Typography variant="body1" fontWeight="bold">
-          Remaining Tasks: {tasks.filter((task) => !task.completed).length}
+          Remaining Tasks:{" "}
+          {newTaskValue.filter((task) => !task.completed).length}
         </Typography>
       </Box>
     </div>
