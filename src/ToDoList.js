@@ -1,15 +1,19 @@
-import React, { useState, useEffect } from "react";
-//import { css } from "@emotion/react";
-import Button from "@mui/material/Button";
-import ButtonGroup from "@mui/material/ButtonGroup";
+import { useState } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
-import TextField from "@mui/material/TextField";
-import Checkbox from "@mui/material/Checkbox";
-import { Typography, Box } from "@mui/material";
-import Paper from "@mui/material/Paper";
-import Grid from "@mui/material/Grid";
-
+import { cx } from "@emotion/css";
+import Tooltip from "@mui/material/Tooltip";
+import Alert from "@mui/material/Alert";
+import AlertTitle from "@mui/material/AlertTitle";
+import * as React from "react";
+import { css } from "@emotion/css";
+import CloseIcon from "@mui/icons-material/Close";
+import Collapse from "@mui/material/Collapse";
 import {
+  Typography,
+  Box,
+  Checkbox,
+  TextField,
+  Button,
   List,
   ListItemButton,
   ListItemText,
@@ -18,187 +22,183 @@ import {
   IconButton,
 } from "@mui/material";
 
-const containerStyle = {
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  width: "500px",
-  height: "600px",
-  backgroundColor: "lightGrey",
-  borderRadius: "30px",
-  margin: "0 auto",
-  marginTop: "30px",
-};
-
-const titleStyle = {
-  color: "black",
-  variant: "h1",
-  width: "300px",
-  height: "50px",
-  //borderRadius: "20px",
-  //backgroundColor: "lightBlue",
-  margin: "0 auto",
-  fontWeight: "bold",
-  //justifyContent: "center",
-  //alignItems: "center",
-};
-
-const inputContainerStyle = {
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  //height: "40px",
-};
-
-/*const taskItemStyle = {
-  width: "200px",
-  display: "flex",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-};*/
-
-const completedTaskStyle = {
-  textDecoration: "line-through",
-  textDecorationStyle: "solid",
-  textDecorationThickness: "2px",
-  color: "black",
-};
-
-/*const deleteButtonStyle = {
-  fontSize: "10px",
-  padding: "3px 3px",
-};*/
-
 const ToDoList = () => {
-  useEffect(() => {
-    const storedTasks = localStorage.getItem("tasks");
-    if (storedTasks) {
-      setTasks(JSON.parse(storedTasks));
-    }
-  }, []);
+  const storedTasks = localStorage.getItem("tasks");
+  const initialTasks = storedTasks ? JSON.parse(storedTasks) : [];
+  const [tasks, setTasks] = useState([...initialTasks]);
 
-  const [tasks, setTasks] = useState(() => {
-    const storedTasks = localStorage.getItem("tasks");
-    return storedTasks ? JSON.parse(storedTasks) : [];
-  });
+  const [inputValue, setInputValue] = useState("");
+  const [taskStateFilter, setTaskStateFilter] = useState("all");
 
-  const [taskInfo, setTaskInfo] = useState("");
-  const [filter, setFilter] = useState("all");
+  const completedTasks = tasks.filter((task) => task.isCompleted);
+  const remainingTasks = tasks.filter((task) => !task.isCompleted);
 
-  useEffect(() => {
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-  }, [tasks]);
+  const [showEmptyStringAlert, setShowEmptyStringAlert] = useState(false);
+  const [showTaskExistsAlert, setShowTaskExistsAlert] = useState(false);
 
-  const handleInputChange = (event) => {
-    setTaskInfo(event.target.value);
-  };
   const addTask = () => {
-    if (taskInfo.trim() !== "") {
-      const newTask = {
-        id: Date.now(),
-        task: taskInfo,
-        completed: false,
-      };
-
-      setTasks([...tasks, newTask]);
-      setTaskInfo("");
+    if (inputValue.trim() === "") {
+      setShowEmptyStringAlert(true);
+      return;
     }
+
+    const isTaskExists = tasks.some(
+      (task) => task.description === inputValue.trim()
+    );
+
+    if (isTaskExists) {
+      setShowTaskExistsAlert(true);
+      return;
+    }
+
+    const newTask = {
+      id: Date.now(),
+      description: inputValue.trim(),
+      isCompleted: false,
+    };
+
+    const updatedTasks = [...tasks, newTask];
+    setTasks(updatedTasks);
+    setInputValue("");
+    localStorage.setItem("tasks", JSON.stringify(updatedTasks));
+
+    setShowEmptyStringAlert(false);
+    setShowTaskExistsAlert(false);
   };
 
   const deleteTask = (taskId) => {
     const updatedTasks = tasks.filter((task) => task.id !== taskId);
     setTasks(updatedTasks);
+    localStorage.setItem("tasks", JSON.stringify(updatedTasks));
   };
 
   const markAsCompleted = (taskId) => {
-    const updatedTasks = tasks.map((task) => {
-      if (task.id === taskId) {
-        return { ...task, completed: !task.completed };
-      }
-      return task;
-    });
+    const updatedTasks = tasks.map((task) =>
+      task.id === taskId ? { ...task, isCompleted: !task.isCompleted } : task
+    );
     setTasks(updatedTasks);
+    localStorage.setItem("tasks", JSON.stringify(updatedTasks));
   };
 
   const filterTasks = () => {
-    switch (filter) {
-      case "completed":
-        return tasks.filter((task) => task.completed);
-      case "toDo":
-        return tasks.filter((task) => !task.completed);
-      default:
-        return tasks;
-    }
+    if (taskStateFilter === FilterByTaskStateOption.COMPLETED)
+      return completedTasks;
+    if (taskStateFilter === FilterByTaskStateOption.TODO) return remainingTasks;
+    return tasks;
   };
 
   return (
-    <div sx={containerStyle}>
-      <Box sx={titleStyle}>To Do List</Box>
+    <div className={containerStyle}>
+      <Collapse in={showEmptyStringAlert}>
+        <Alert
+          action={
+            <IconButton
+              aria-label="close"
+              color="inherit"
+              size="small"
+              onClick={() => {
+                setShowEmptyStringAlert(false);
+              }}
+            >
+              <CloseIcon fontSize="inherit" />
+            </IconButton>
+          }
+          severity="error"
+        >
+          <AlertTitle>Error</AlertTitle>Trying to add an empty string!
+        </Alert>
+      </Collapse>
 
-      <Box sx={inputContainerStyle}>
-        <TextField
-          id="outlined-basic"
-          label="Add a new task here"
-          variant="outlined"
-          size="small"
-          input
-          value={taskInfo}
-          onChange={handleInputChange}
-        />
-        <Button variant="outlined" size="large" onClick={addTask}>
-          Add Task
-        </Button>
-      </Box>
-      <Box
-        display="flex"
-        flexDirection="column"
-        alignItems="center"
-        height="40vh"
-      >
-        <Box>
-          <ButtonGroup
+      <Collapse in={showTaskExistsAlert}>
+        <Alert
+          action={
+            <IconButton
+              aria-label="close"
+              color="inherit"
+              size="small"
+              onClick={() => {
+                setShowTaskExistsAlert(false);
+              }}
+            >
+              <CloseIcon fontSize="inherit" />
+            </IconButton>
+          }
+          severity="error"
+        >
+          <AlertTitle>Error</AlertTitle>Task already exists!
+        </Alert>
+      </Collapse>
+      <Typography variant="h1">To Do List</Typography>
+      <Box className={boxStyle}>
+        <div>
+          <TextField
+            id="outlined-basic"
+            label="Add a new task here"
             variant="outlined"
+            size="small"
+            input
+            value={inputValue}
+            onChange={(event) => setInputValue(event.target.value)}
+          />
+          <Button variant="outlined" size="large" onClick={addTask}>
+            Add Task
+          </Button>
+        </div>
+
+        <Box>
+          <div
             size="medium"
             aria-label="outlined primary button group"
+            className={buttonGroupStyle}
           >
-            <Button onClick={() => setFilter("all")}>All Tasks</Button>
-            <Button onClick={() => setFilter("completed")}>Completed</Button>
-            <Button onClick={() => setFilter("toDo")}>To Do</Button>
-          </ButtonGroup>
+            <Button
+              variant="contained"
+              onClick={() => setTaskStateFilter(FilterByTaskStateOption.ALL)}
+            >
+              All Tasks
+            </Button>
+            <Button
+              variant="contained"
+              onClick={() =>
+                setTaskStateFilter(FilterByTaskStateOption.COMPLETED)
+              }
+            >
+              Completed
+            </Button>
+            <Button
+              variant="contained"
+              onClick={() => setTaskStateFilter(FilterByTaskStateOption.TODO)}
+            >
+              To Do
+            </Button>
+          </div>
         </Box>
 
-        <List
-          sx={{ width: "100%", maxWidth: 360, bgcolor: "background.paper" }}
-        >
+        <List className={listContainerStyle}>
           {filterTasks().map((task) => (
-            <ListItemButton
-              component="li"
-              href="#simple-list"
-              key={task.id}
-              disableGutters
-              //sx={taskItemStyle}
-            >
+            <ListItemButton component="li" href="#simple-list" key={task.id}>
               <ListItemIcon>
                 <Checkbox
-                  checked={task.completed}
+                  checked={task.isCompleted}
                   onChange={() => markAsCompleted(task.id)}
                 />
               </ListItemIcon>
               <ListItemText
-                primary={task.task}
+                primary={task.description}
                 primaryTypographyProps={{
-                  sx: task.completed ? completedTaskStyle : null,
+                  className: cx(task.isCompleted && completedTaskStyle),
                 }}
               />
               <ListItemSecondaryAction>
-                <IconButton
-                  edge="end"
-                  aria-label="delete"
-                  onClick={() => deleteTask(task.id)}
-                >
-                  <DeleteIcon />
-                </IconButton>
+                <Tooltip title="Delete">
+                  <IconButton
+                    edge="end"
+                    aria-label="delete"
+                    onClick={() => deleteTask(task.id)}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </Tooltip>
               </ListItemSecondaryAction>
             </ListItemButton>
           ))}
@@ -209,17 +209,17 @@ const ToDoList = () => {
         display="flex"
         flexDirection="column"
         justifyContent="center"
-        alignItems="center"
-        //height="40vh"
+        alignItems="start"
+        gap="10px"
       >
         <Typography variant="body1" fontWeight="bold">
           Total Tasks: {tasks.length}
         </Typography>
         <Typography variant="body1" fontWeight="bold">
-          Completed Tasks: {tasks.filter((task) => task.completed).length}
+          Completed Tasks: {completedTasks.length}
         </Typography>
         <Typography variant="body1" fontWeight="bold">
-          Remaining Tasks: {tasks.filter((task) => !task.completed).length}
+          Remaining Tasks: {tasks.length - completedTasks.length}
         </Typography>
       </Box>
     </div>
@@ -227,3 +227,58 @@ const ToDoList = () => {
 };
 
 export default ToDoList;
+
+const containerStyle = css`
+  display: flex;
+  justify-content: start;
+  align-items: start;
+  flex-direction: column;
+  gap: 30px;
+  padding: 20px;
+
+  .css-1qedkg0 {
+    width: 99%;
+  }
+
+  .css-o2w69a-MuiTypography-root {
+    color: #29b6f6;
+    font-size: 50px;
+    font-weight: bold;
+  }
+`;
+
+const listContainerStyle = css`
+  max-height: 450px;
+  overflow-y: auto;
+  background-color: #f5f5f5;
+  border-radius: 10px;
+  width: 100%;
+`;
+
+const completedTaskStyle = css`
+  text-decoration: line-through solid 2px;
+  color: black;
+`;
+
+const boxStyle = css`
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+
+  > div {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+  }
+`;
+
+const buttonGroupStyle = css`
+  display: flex;
+  gap: 20px;
+`;
+
+const FilterByTaskStateOption = {
+  ALL: "all",
+  TODO: "toDo",
+  COMPLETED: "completed",
+};
