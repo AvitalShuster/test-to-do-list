@@ -1,5 +1,6 @@
 import { useState } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { cx } from "@emotion/css";
 import { css } from "@emotion/css";
 import {
   Typography,
@@ -22,7 +23,7 @@ const containerStyle = css`
   align-items: center;
   flex-direction: column;
   gap: 30px;
-  h1 {
+  .css-o2w69a-MuiTypography-root {
     color: #29b6f6;
     font-size: 50px;
     font-weight: bold;
@@ -169,7 +170,7 @@ const ToDoList = () => {
               <ListItemText
                 primary={task.description}
                 primaryTypographyProps={{
-                  className: task.isCompleted ? completedTaskStyle : "",
+                  className: cx(task.isCompleted && completedTaskStyle),
                 }}
               />
               <ListItemSecondaryAction>
