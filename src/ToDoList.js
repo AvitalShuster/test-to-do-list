@@ -56,6 +56,8 @@ const ToDoList = () => {
 
   const [inputValue, setInputValue] = useState("");
   const [taskStateFilter, setTaskStateFilter] = useState("all");
+  const completedTasks = newTaskValue.filter((task) => task.isCompleted);
+  const remainingTasks = newTaskValue.filter((task) => !task.isCompleted);
 
   const addTask = () => {
     if (inputValue.trim() === "") {
@@ -92,9 +94,8 @@ const ToDoList = () => {
 
   const filterTasks = () => {
     if (taskStateFilter === FilterByTaskStateOption.COMPLETED)
-      return newTaskValue.filter((task) => task.isCompleted);
-    if (taskStateFilter === FilterByTaskStateOption.TODO)
-      return newTaskValue.filter((task) => !task.isCompleted);
+      return completedTasks;
+    if (taskStateFilter === FilterByTaskStateOption.TODO) return remainingTasks;
     return newTaskValue;
   };
 
@@ -196,12 +197,10 @@ const ToDoList = () => {
           Total Tasks: {newTaskValue.length}
         </Typography>
         <Typography variant="body1" fontWeight="bold">
-          Completed Tasks:{" "}
-          {newTaskValue.filter((task) => task.isCompleted).length}
+          Completed Tasks: {completedTasks.length}
         </Typography>
         <Typography variant="body1" fontWeight="bold">
-          Remaining Tasks:{" "}
-          {newTaskValue.filter((task) => !task.isCompleted).length}
+          Remaining Tasks: {newTaskValue.length - completedTasks.length}
         </Typography>
       </Box>
     </div>
