@@ -49,15 +49,15 @@ const FilterByTaskStateOption = {
 };
 
 const ToDoList = () => {
-  const [newTaskValue, setNewTaskValue] = useState(() => {
-    const storedTasks = localStorage.getItem("newTaskValue");
-    return storedTasks ? JSON.parse(storedTasks) : [];
-  });
+  const storedTasks = localStorage.getItem("tasks");
+  const initialTasks = storedTasks ? JSON.parse(storedTasks) : [];
+  const [tasks, setTasks] = useState([...initialTasks]);
 
   const [inputValue, setInputValue] = useState("");
   const [taskStateFilter, setTaskStateFilter] = useState("all");
-  const completedTasks = newTaskValue.filter((task) => task.isCompleted);
-  const remainingTasks = newTaskValue.filter((task) => !task.isCompleted);
+
+  const completedTasks = tasks.filter((task) => task.isCompleted);
+  const remainingTasks = tasks.filter((task) => !task.isCompleted);
 
   const addTask = () => {
     if (inputValue.trim() === "") {
@@ -65,8 +65,8 @@ const ToDoList = () => {
       return;
     }
 
-    const isTaskExists = newTaskValue.some(
-      (task) => task.task === inputValue.trim()
+    const isTaskExists = tasks.some(
+      (task) => task.description === inputValue.trim()
     );
 
     if (isTaskExists) {
@@ -76,27 +76,27 @@ const ToDoList = () => {
 
     const newTask = {
       id: Date.now(),
-      task: inputValue.trim(),
+      description: inputValue.trim(),
       isCompleted: false,
     };
 
-    const updatedTasks = [...newTaskValue, newTask];
-    setNewTaskValue(updatedTasks);
+    const updatedTasks = [...tasks, newTask];
+    setTasks(updatedTasks);
     setInputValue("");
-    localStorage.setItem("newTaskValue", JSON.stringify(updatedTasks));
+    localStorage.setItem("tasks", JSON.stringify(updatedTasks));
   };
 
   const deleteTask = (taskId) => {
-    const updatedTasks = newTaskValue.filter((task) => task.id !== taskId);
-    setNewTaskValue(updatedTasks);
-    localStorage.setItem("newTaskValue", JSON.stringify(updatedTasks));
+    const updatedTasks = tasks.filter((task) => task.id !== taskId);
+    setTasks(updatedTasks);
+    localStorage.setItem("tasks", JSON.stringify(updatedTasks));
   };
 
   const filterTasks = () => {
     if (taskStateFilter === FilterByTaskStateOption.COMPLETED)
       return completedTasks;
     if (taskStateFilter === FilterByTaskStateOption.TODO) return remainingTasks;
-    return newTaskValue;
+    return tasks;
   };
 
   return (
@@ -154,21 +154,18 @@ const ToDoList = () => {
                 <Checkbox
                   checked={task.isCompleted}
                   onChange={() => {
-                    const updatedTasks = newTaskValue.map((t) =>
+                    const updatedTasks = tasks.map((t) =>
                       t.id === task.id
                         ? { ...t, isCompleted: !t.isCompleted }
                         : t
                     );
-                    setNewTaskValue(updatedTasks);
-                    localStorage.setItem(
-                      "newTaskValue",
-                      JSON.stringify(updatedTasks)
-                    );
+                    setTasks(updatedTasks);
+                    localStorage.setItem("tasks", JSON.stringify(updatedTasks));
                   }}
                 />
               </ListItemIcon>
               <ListItemText
-                primary={task.task}
+                primary={task.description}
                 primaryTypographyProps={{
                   className: task.isCompleted ? completedTaskStyle : "",
                 }}
@@ -194,13 +191,13 @@ const ToDoList = () => {
         alignItems="center"
       >
         <Typography variant="body1" fontWeight="bold">
-          Total Tasks: {newTaskValue.length}
+          Total Tasks: {tasks.length}
         </Typography>
         <Typography variant="body1" fontWeight="bold">
           Completed Tasks: {completedTasks.length}
         </Typography>
         <Typography variant="body1" fontWeight="bold">
-          Remaining Tasks: {newTaskValue.length - completedTasks.length}
+          Remaining Tasks: {tasks.length - completedTasks.length}
         </Typography>
       </Box>
     </div>
