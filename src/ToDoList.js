@@ -91,6 +91,16 @@ const ToDoList = () => {
     setTasks(updatedTasks);
     localStorage.setItem("tasks", JSON.stringify(updatedTasks));
   };
+  const markAsCompleted = (taskId) => {
+    const updatedTasks = tasks.map((task) => {
+      if (task.id === taskId) {
+        return { ...task, isCompleted: !task.isCompleted };
+      }
+      return task;
+    });
+    setTasks(updatedTasks);
+    localStorage.setItem("tasks", JSON.stringify(updatedTasks));
+  };
 
   const filterTasks = () => {
     if (taskStateFilter === FilterByTaskStateOption.COMPLETED)
@@ -153,15 +163,7 @@ const ToDoList = () => {
               <ListItemIcon>
                 <Checkbox
                   checked={task.isCompleted}
-                  onChange={() => {
-                    const updatedTasks = tasks.map((t) =>
-                      t.id === task.id
-                        ? { ...t, isCompleted: !t.isCompleted }
-                        : t
-                    );
-                    setTasks(updatedTasks);
-                    localStorage.setItem("tasks", JSON.stringify(updatedTasks));
-                  }}
+                  onChange={() => markAsCompleted(task.id)}
                 />
               </ListItemIcon>
               <ListItemText
