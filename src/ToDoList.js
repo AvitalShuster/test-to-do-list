@@ -30,17 +30,23 @@ const containerStyle = css`
   }
 `;
 
-const completedTaskStyle = css`
-  text-decoration: line-through solid 2px;
-  color: black;
-`;
-
 const listContainerStyle = css`
   width: 100%;
   max-height: 450px;
   overflow-x: hidden;
   overflow-y: auto;
 `;
+
+const completedTaskStyle = css`
+  text-decoration: line-through solid 2px;
+  color: black;
+`;
+
+const FilterByTaskStateOption = {
+  ALL: "all",
+  TODO: "toDo",
+  COMPLETED: "completed",
+};
 
 const ToDoList = () => {
   const [newTaskValue, setNewTaskValue] = useState(() => {
@@ -49,7 +55,7 @@ const ToDoList = () => {
   });
 
   const [inputValue, setInputValue] = useState("");
-  const [taskState, associateTaskState] = useState("all");
+  const [taskStateFilter, setTaskStateFilter] = useState("all");
 
   const addTask = () => {
     if (inputValue.trim() === "") {
@@ -85,9 +91,9 @@ const ToDoList = () => {
   };
 
   const filterTasks = () => {
-    if (taskState === "isCompleted")
+    if (taskStateFilter === FilterByTaskStateOption.COMPLETED)
       return newTaskValue.filter((task) => task.isCompleted);
-    if (taskState === "toDo")
+    if (taskStateFilter === FilterByTaskStateOption.TODO)
       return newTaskValue.filter((task) => !task.isCompleted);
     return newTaskValue;
   };
@@ -115,11 +121,23 @@ const ToDoList = () => {
             size="medium"
             aria-label="outlined primary button group"
           >
-            <Button onClick={() => associateTaskState("all")}>All Tasks</Button>
-            <Button onClick={() => associateTaskState("completed")}>
+            <Button
+              onClick={() => setTaskStateFilter(FilterByTaskStateOption.ALL)}
+            >
+              All Tasks
+            </Button>
+            <Button
+              onClick={() =>
+                setTaskStateFilter(FilterByTaskStateOption.COMPLETED)
+              }
+            >
               Completed
             </Button>
-            <Button onClick={() => associateTaskState("toDo")}>To Do</Button>
+            <Button
+              onClick={() => setTaskStateFilter(FilterByTaskStateOption.TODO)}
+            >
+              To Do
+            </Button>
           </ButtonGroup>
         </Box>
 
